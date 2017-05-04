@@ -29,19 +29,23 @@ PROGRAM=${0##*/}
 
 # paste. take input from stdin
 pastebin() {
-	# show params
-	sed -e '/^$/d' >&2 <<-EOF
-		${PASTE_APIKEY+apikey: "$PASTE_APIKEY"}
-		${title+title: "$title"}
-		${name+name: "$name"}
-		${private+private: "$private"}
-		${language+language: "$language"}
-		${expire+expire: "$expire"}
-		${reply+reply: "$reply"}
-	EOF
+	if [ "${verbose+set}" = "set" ]; then #{
+		# show params
+		sed -e '/^$/d' >&2 <<-EOF
+			${PASTE_APIKEY+apikey: "$PASTE_APIKEY"}
+			${title+title: "$title"}
+			${name+name: "$name"}
+			${private+private: "$private"}
+			${language+language: "$language"}
+			${expire+expire: "$expire"}
+			${reply+reply: "$reply"}
+		EOF
+		echo
+	fi #}
 
 	# do paste
 	curl "$PASTE_URL${PASTE_APIKEY+?apikey=${PASTE_APIKEY}}" \
+		${verbose+-D -} \
 		${title+-F title="$title"} \
 		${name+-F name="$name"} \
 		${private+-F private="$private"} \
@@ -90,6 +94,7 @@ Options:
   -l, --language  language this paste is in
   -e, --expire    paste expiration in minutes
   -r, --reply     reply to existing paste
+  -v, --verbose   outputs debugging information
 "
 }
 
@@ -99,6 +104,7 @@ set_defaults() {
 	unset language
 	unset expire
 	unset reply
+	unset verbose
 
 	# default to user@hostname
 	name=${SUDO_USER:-$USER}@${HOSTNAME:-$(hostname)}
@@ -107,7 +113,7 @@ set_defaults() {
 set_defaults
 
 # parse command line args
-t=$(getopt -o h,t:,n:,p,l:,e:,r:,b:,a: --long help,title:,name:,private,language:,expire:,reply:,baseurl:,apikey: -n "$PROGRAM" -- "$@")
+t=$(getopt -o h,t:,n:,p,l:,e:,r:,b:,a:,v --long help,title:,name:,private,language:,expire:,reply:,baseurl:,apikey:,verbose -n "$PROGRAM" -- "$@")
 eval set -- "$t"
 
 while :; do
@@ -147,6 +153,9 @@ while :; do
 		shift
 		PASTE_APIKEY="$1"
 	;;
+	-v|--verbose)
+		verbose=1
+	;;
 	--)
 		shift
 		break
@@ -159,7 +168,9 @@ while :; do
 	shift
 done
 
-echo "Paste endpoint: $PASTE_URL"
+if [ "${verbose+set}" = "set" ]; then #{
+	echo "Paste endpoint: $PASTE_URL" >&2
+fi #}
 
 # if we have more commandline arguments, set these as title
 if [ "${title+set}" != "set" ]; then
