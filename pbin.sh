@@ -182,4 +182,4 @@ else
 	paste=$(cat)
 fi
 
-echo "$paste" | pastebin
+printf "%s" "$paste" | pastebin
