@@ -83,6 +83,7 @@ usage() {
 
 Options:
   -a, --apikey    API key for the server
+  -b, --baseurl   base URL for stikked server
   -t, --title     title of this paste
   -n, --name      author of this paste
   -p, --private   should this paste be private
@@ -106,7 +107,7 @@ set_defaults() {
 set_defaults
 
 # parse command line args
-t=$(getopt -o h,t:,n:,p,l:,e:,r:,b:,a: --long help,title:,name:,private,language:,expire:,reply:,apikey: -n "$PROGRAM" -- "$@")
+t=$(getopt -o h,t:,n:,p,l:,e:,r:,b:,a: --long help,title:,name:,private,language:,expire:,reply:,baseurl:,apikey: -n "$PROGRAM" -- "$@")
 eval set -- "$t"
 
 while :; do
@@ -138,7 +139,7 @@ while :; do
 		shift
 		reply="$1"
 	;;
-	-b)
+	-b|--baseurl)
 		shift
 		PASTE_URL="$1"
 	;;
